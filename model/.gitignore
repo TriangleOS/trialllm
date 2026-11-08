@@ -1,0 +1,9 @@
+__pycache__/
+.venv/
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.txt
+!.gitignore
+!.env.example
