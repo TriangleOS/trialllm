@@ -1,30 +1,31 @@
-# Claude Code implementation handoff
+# Claude Code handoff — shared Triangle API, not a model ownership claim
 
-The Triangle Africa website already exists at https://trianglellm.lovable.app. This repository (`TriangleOS/trialllm`) contains an initial regional API foundation; it is not itself a trained model or a completed production deployment.
+Repo: `TriangleOS/trialllm`. Existing website: https://trianglellm.lovable.app. Existing model hostname: `llm.triangleos.com` (verify the current Cloudflare account/project before changing DNS or build settings).
 
-Related repositories inspected:
-- `TriangleOS/anything-llm`: fork of AnythingLLM, MIT. Existing Express/Prisma server and mobile endpoints at `server/endpoints/mobile`.
-- `TriangleOS/anythingllm-mobile`: fork of AnythingLLM Mobile, GPL-3.0-or-later. React Native Android client; source includes device registration and SSE chat integration.
-- `TriangleOS/Qwen3`: fork of upstream Qwen3 source, not evidence Triangle owns the weights.
-- `TriangleOS/searxng`: possible optional self-hosted web search; only add after residency and egress review.
+Read `README.md`, `docs/PORTAL_INTEGRATION.md`, `cloudflare/pages/DEPLOYMENT.md`, and `model/PROPRIETARY_MODEL_PROGRAM.md` first.
 
-## Required work
+## Option 4 architecture
 
-1. Read this repository README, source, environment example, and API tests. Preserve the existing site and integrations.
-2. Adapt the API scaffold to the actual Lovable project's auth/session mechanism. Establish a secure server-to-server or browser-to-API flow without exposing model or AnythingLLM admin credentials. The frontend must use `GET /v1/region` for display and must not choose an authoritative region.
-3. Decide whether this API is the primary chat backend or an API gateway to a region-local AnythingLLM server. If AnythingLLM is used, preserve its actual user/workspace auth model and `/api/mobile` contract; don't pretend a model chat-completions endpoint provides AnythingLLM's RAG, documents, agents, or mobile device registration.
-4. For AnythingLLM web and mobile routes, add server-enforced region and workspace/tenant authorization after authenticated identity is established. Audit workspace listing/content, documents, threads, streaming chat, registrations, device-token validation and any data-bearing endpoints. Deny missing/anonymous/unassigned identities in Triangle production. Never trust a request header/body for region assignment.
-5. For mobile, inspect and adapt `TriangleOS/anythingllm-mobile`'s `src/utils/AnythingLLMExternal`, `src/utils/AiProviders/delegatedProvider`, and `src/screens/ConnectToInstance`. Its client uses `/api/mobile`, `x-anythingllm-mobile-device-token`, and `send/stream-chat` SSE, not this repo's proposed OpenAI route by default. Keep access scoped to the signed-in user and assigned region, and revoke devices. Do not place shared server keys in the app.
-6. Review mobile local chat/document storage, Firebase analytics/crash reporting, external provider selection, web search, scheduled tasks, voice recognition, and model download sources. Document data flows and disable or gate anything that violates Triangle policy.
-7. Add backend tests for JWT issuer/audience/signature failures, absent/mismatched region claim, client region override attempts, request validation, model upstream failure, streaming, workspace authorization, mobile device revocation and no cross-region failover. Add integration tests for Lovable auth.
-8. Create deployment manifests per region with independent API/model/data services and secrets. Set the IdP-issued signed `triangle_region_id` claim from trusted account policy. Never use geolocation/client input as authorization. Define regional backups/logging/telemetry and retention.
-9. Keep inference model, checkpoint license, tokenizer, training data, and fine-tune rights documented independently from app licenses. Do not market a third-party model as trained or owned by Triangle unless evidence and rights support that claim.
-10. Run tests, lint, typecheck, and builds; report actual results and outstanding blockers. Do not claim production-ready or deployment-complete without real credentials, model endpoint, infrastructure, legal review, and residency/security audit.
+Keep three things separated:
+1. Triangle-owned API/gateway and auth/routing code in this repo.
+2. Model research/training artifacts in `model/`, under restricted access and separate data/IP gates.
+3. Upstream product/client integrations (AnythingLLM and AnythingLLM Mobile) in their existing forks, without copying proprietary credentials into them or relicensing upstream work.
 
-## Proprietary-model path
+Do not call the current randomly initialized tiny byte model a usable LLM. Do not claim Triangle has trained a model until a valid run with authorized data, held-out evaluations and controlled checkpoint exists. Do not make a legal ownership/exclusivity claim without counsel review and chain-of-title evidence.
 
-This repo is serving infrastructure, not training infrastructure. Propose a separate governed model program: data-rights inventory and consent, language/task benchmarks across the target markets, evaluation baseline, licensed base-checkpoint selection, adaptation plan, compute budget, reproducible training/evaluation pipeline, model cards and dataset documentation, release/artifact controls, and legal review of ownership and derivative licenses. Do not silently download or deploy a model based on a repository name alone.
+## Implementation tasks
 
-## Licensing blocker
+- Integrate Pages Functions into the existing Cloudflare Pages project without replacing the existing site output or DNS configuration. Verify preview deployment on `llm.triangleos.com`.
+- Support multiple exact portal origins via `TRIANGLE_ALLOWED_ORIGINS`; test OPTIONS, auth, CORS and bearer-token flows.
+- Implement the published routes: `/v1/region`, `/v1/models`, `/v1/chat/completions`. Validate bodies and reject client-selected regions, upstream URLs, model service credentials and unknown fields. Keep stream behavior explicit until model token streaming exists.
+- Add robust distributed rate limiting/quotas using approved Cloudflare controls, response size/time bounds, safe errors, request IDs, dependency timeout, and privacy-preserving metrics. Do not log prompts or outputs.
+- Review Cloudflare Pages outbound access to inference origin; constrain origin, use TLS and workload identity/mTLS or equivalent, and make the service non-public. A shared token is prototype-grade only.
+- Wire `integrations/lovable/triangleApi.ts` into the actual Lovable auth session; wire `integrations/portals/triangleClient.ts` into other approved web portals and `integrations/mobile/triangleApi.ts` into React Native auth/chat. Do not claim the helper is a complete native app integration. Test device securely stored refresh tokens, logout/revoke, region mismatch, cancel, offline and unavailability.
+- Add automated tests for auth/JWKS errors, missing region claim, region mismatch, client override attempts, origin allowlist, request validation, model timeout/error, no cross-region fallback and mobile adapter behavior.
+- Train only with Triangle-controlled and documented authorized data. Implement corpus-manifest validation, split-safe preprocessing, reproducible configs, held-out regional-language evaluation, memorization checks, safety/privacy evaluation, checkpoint signing, artifact access control and rollback. Keep datasets/checkpoints out of Git.
+- Update deployment docs with exact Pages project settings only after verifying them. Do not invent configured Cloudflare IDs, secrets, model host or identity settings.
+- Run CI tests/typecheck/lint and a Cloudflare Pages preview deployment; report exact commands/results and unresolved blockers.
 
-AnythingLLM main repository is MIT-licensed. AnythingLLM Mobile's current repository is GPL-3.0-or-later (README notes pre-1.2.0 releases remain under MIT). Review obligations with counsel before distribution. Do not relicense upstream content. Existing TriangleOS/Qwen3 is a fork, not a transfer of upstream model ownership.
+## Legal/technical release gates
+
+`model/PROPRIETARY_MODEL_PROGRAM.md` lists data, contributor, evaluation and legal gates. Preserve all third-party notices. AnythingLLM server is MIT; current AnythingLLM Mobile is GPL-3.0-or-later. Model/runtime dependency terms and model/data rights are distinct from those repositories' app licenses. No implementation can guarantee the legal word “proprietary”; counsel must approve the claim on facts and jurisdiction.

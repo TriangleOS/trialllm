@@ -1,0 +1,11 @@
+# Non-secret Cloudflare Pages variables (set in the Pages project dashboard)
+OIDC_ISSUER=https://identity.example.africa/
+OIDC_AUDIENCE=trianglellm-api
+OIDC_JWKS_URL=https://identity.example.africa/.well-known/jwks.json
+TRIANGLE_REGION_ID=example-region
+TRIANGLE_ALLOWED_ORIGINS=https://trianglellm.lovable.app,https://portal.example.africa
+TRIANGLE_MODEL_ORIGIN=https://private-inference-origin.example.africa
+TRIANGLE_PUBLIC_MODEL_ID=triangle-from-scratch-research-v1
+
+# Secret: set using Cloudflare Pages secret settings, never commit this.
+# TRIANGLE_INFERENCE_TOKEN=generate-a-long-random-secret
