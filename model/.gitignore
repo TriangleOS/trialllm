@@ -7,3 +7,5 @@ __pycache__/
 *.txt
 !.gitignore
 !.env.example
+!requirements.txt
+!requirements-dev.txt
