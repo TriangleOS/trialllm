@@ -10,6 +10,12 @@ This repository separates the regional API gateway, portal/mobile client adapter
 - `integrations/mobile/triangleApi.ts`: React Native API-call helper; not a full mobile app modification or store-ready release.
 - `cloudflare/pages/DEPLOYMENT.md` and `docs/PORTAL_INTEGRATION.md`: deployment and integration handoff.
 
+## Done in feat/proprietary-model-program
+
+- Gateway refactored into `cloudflare/pages/lib/` with tests (44 Vitest cases): Supabase tokens, region from `app_metadata`, unknown fields rejected, timeouts give 504, no fallback.
+- `sdk/`, `mobile/` (Expo, from scratch), `infra/` (VPS + Cloudflare Tunnel), corpus manifest gate and held-out eval in `model/`.
+- Fixed: `integrations/portals/triangleClient.ts` used `#` comments (not valid TypeScript); Pages `Data` types failed to typecheck; `src/` did not typecheck; serve rejected temperatures the gateway allowed (0-0.1 and 1.5-2), giving 502s.
+
 ## Architecture
 
 Portal/mobile client -> Cloudflare Pages Functions on `llm.triangleos.com` -> private regional model service -> model checkpoint loaded from a Triangle-controlled secure artifact store. OIDC issuer signs the trusted region claim. Run separate gateway/inference/data resources per region. Do not route based on client-selected region and do not silently fail over.

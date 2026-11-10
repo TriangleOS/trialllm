@@ -15,18 +15,27 @@ Cloudflare Pages/Workers is an edge API and static-site runtime; it is **not a G
 
 ## Contents
 
-- `cloudflare/pages/functions/_middleware.ts`: JWT signature/issuer/audience and signed region-claim checks for Pages Functions.
-- `cloudflare/pages/functions/v1/region.ts`: returns the region assigned to the authenticated user.
-- `cloudflare/pages/functions/v1/chat/completions.ts`: validates chat input and proxies only to the configured private inference origin, using a separate service token.
-- `cloudflare/pages/wrangler.toml.example`: Pages runtime settings. Merge Functions into the current Pages project’s source/build; do not replace the existing `llm.triangleos.com` site output unintentionally.
-- `model/triangle_model.py`: original small decoder-only Transformer definition.
-- `model/train.py`: deterministic-seed next-byte prediction training from a local UTF-8 corpus, with corpus hash and configuration in checkpoint metadata.
-- `model/serve.py`: private FastAPI inference prototype with shared-token and region checks; never expose this directly to browsers.
-- `model/requirements.txt`: runtime/training dependencies (not model weights).
+- `cloudflare/pages/functions/`: Pages Functions for `/v1/region`, `/v1/models`, `/v1/chat/completions`. Shared code is in `cloudflare/pages/lib/` (auth, CORS, strict body validation). Accepts Supabase access tokens (JWKS or legacy HS256 secret); the region comes only from a signed claim or Supabase `app_metadata`.
+- `cloudflare/pages/DEPLOYMENT.md`: step-by-step deployment, using the shared Supabase sign-in and the existing IONOS VPS.
+- `sdk/`: typed TypeScript client (`createTriangleClient`, `streamChat`, `parseSSE`) for web portals and the mobile app.
+- `mobile/`: Expo app written from scratch (Google sign-in via Supabase, region screen, chat, Keychain/Keystore session storage).
+- `infra/`: Docker Compose for the VPS: inference container on an internal network plus an outbound-only Cloudflare Tunnel.
+- `model/triangle_model.py`: original small decoder-only Transformer, random initialization.
+- `model/train.py`: next-byte training from a local corpus. Refuses to run without a matching corpus manifest (`model/manifest.py`, `model/corpus-manifest.example.json`); holds out the corpus tail for evaluation.
+- `model/serve.py`: private FastAPI inference prototype with service-token and region checks.
 - `model/PROPRIETARY_MODEL_PROGRAM.md`: data rights, training, evaluation, legal and release gates.
-- `integrations/lovable/triangleApi.ts`: browser-side API client for the existing Lovable frontend.
+- `integrations/`: drop-in clients for Supabase-based portals (`lovable/`), other portals and React Native helpers.
+- `tests/`: Vitest for the gateway and SDK, pytest for the model, manifest and inference service.
+- `LICENSE-NOTICE.md`: what is TriangleOS code, what is third-party, and what is not used.
 
-The existing Node API remains available; it still proxies an external OpenAI-compatible endpoint. Do not confuse that API path with the new from-scratch model prototype.
+## Checks
+
+```bash
+npm ci && npm run typecheck && npm test
+(cd sdk && npm ci && npm run build)
+(cd mobile && npm ci && npx tsc --noEmit)
+pip install -r model/requirements-dev.txt && pytest tests/model
+```
 
 ## From-scratch model setup
 
@@ -38,7 +47,7 @@ python3 -m venv .venv
 . .venv/bin/activate
 pip install -r requirements.txt
 # Place an authorized UTF-8 corpus outside Git, then:
-python train.py --data /secure/path/triangle_corpus.txt --out /secure/path/triangle-checkpoint.pt --steps 1000
+python train.py --data /secure/path/triangle_corpus.txt --manifest /secure/path/corpus-manifest.json --out /secure/path/triangle-checkpoint.pt --steps 1000
 ```
 
 This compact implementation is for engineering validation, not a production-scale foundation model. It uses byte-level tokenization (no external tokenizer or tokenizer vocabulary), causal self-attention, and next-byte training. Training quality depends on data rights, volume, language representation, hardware, and rigorous testing. Train/evaluate first in a secured environment; do not commit corpora or checkpoints.

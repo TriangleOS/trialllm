@@ -44,7 +44,11 @@ Before collecting or training:
 - [x] New decoder-only byte-level Transformer definition with random initialization.
 - [x] Local corpus training prototype and corpus hash in checkpoint metadata.
 - [x] Region- and service-token-protected inference prototype.
-- [x] Cloudflare Pages Functions JWT and region middleware scaffold.
+- [x] Cloudflare Pages Functions JWT and region middleware, with tests (Supabase tokens supported).
+- [x] Corpus manifest check: `train.py` refuses to train unless `--manifest` matches the corpus checksum and lists a rights basis for every source.
+- [x] Held-out evaluation split (contiguous tail) and eval loss stored in the checkpoint.
+- [x] Shared TypeScript SDK and a from-scratch Expo mobile client.
+- [x] VPS host definition (Docker, outbound-only Cloudflare Tunnel, no inbound ports).
 - [ ] Authorized dataset and rights register.
 - [ ] Training run and trained checkpoint.
 - [ ] Independent multilingual, safety, privacy and memorization evaluation.

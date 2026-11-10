@@ -1,0 +1,29 @@
+name: checks
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm ci && npm run build
+        working-directory: sdk
+      - run: npm ci && npx tsc --noEmit
+        working-directory: mobile
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - run: pip install --index-url https://download.pytorch.org/whl/cpu "torch>=2.2,<3" && pip install -r model/requirements-dev.txt
+      - run: pytest -q tests/model

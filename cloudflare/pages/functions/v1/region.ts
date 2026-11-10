@@ -1,7 +1,8 @@
-interface Env { TRIANGLE_REGION_ID: string }
-interface Data { triangleRegionId?: string; triangleUserId?: string }
+import type { GatewayData, GatewayEnv } from "../../lib/env";
 
-export const onRequestGet: PagesFunction<Env, string, Data> = async ({ env, data }) => {
-  if (!data.triangleUserId || !data.triangleRegionId) return Response.json({ error: "Authentication required" }, { status: 401 });
-  return Response.json({ regionId: env.TRIANGLE_REGION_ID }, { headers: { "Cache-Control": "no-store" } });
+export const onRequestGet: PagesFunction<GatewayEnv, string, GatewayData> = async ({ env, data }) => {
+  if (!data.triangleUserId || data.triangleRegionId !== env.TRIANGLE_REGION_ID) {
+    return Response.json({ error: "Authentication required" }, { status: 401 });
+  }
+  return Response.json({ regionId: env.TRIANGLE_REGION_ID, assignedTo: data.triangleUserId });
 };

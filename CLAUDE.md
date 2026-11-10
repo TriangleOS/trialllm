@@ -29,3 +29,18 @@ Do not call the current randomly initialized tiny byte model a usable LLM. Do no
 ## Legal/technical release gates
 
 `model/PROPRIETARY_MODEL_PROGRAM.md` lists data, contributor, evaluation and legal gates. Preserve all third-party notices. AnythingLLM server is MIT; current AnythingLLM Mobile is GPL-3.0-or-later. Model/runtime dependency terms and model/data rights are distinct from those repositories' app licenses. No implementation can guarantee the legal word “proprietary”; counsel must approve the claim on facts and jurisdiction.
+
+## Project facts (TriangleOS)
+
+- Sign-in is the shared Supabase project `kvpnvqmgxbqxfwqdrrmm`; there is no separate OIDC server. Region access is `app_metadata.triangle_region_id`.
+- The model host is the existing IONOS VPS (System 2) behind an outbound-only Cloudflare Tunnel. Do not add paid hosts.
+- Only Claude Pro is paid. Warn before anything that can cost money (GPU hosts, app store accounts, EAS builds, paid Cloudflare plans).
+
+## Checks before pushing
+
+```bash
+npm ci && npm run typecheck && npm test
+(cd sdk && npm ci && npm run build)
+(cd mobile && npm ci && npx tsc --noEmit)
+pip install -r model/requirements-dev.txt && pytest tests/model
+```

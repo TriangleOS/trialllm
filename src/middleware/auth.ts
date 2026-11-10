@@ -17,7 +17,7 @@ export async function authenticate(_req: Request, res: Response, next: NextFunct
   try {
     const settings = env();
     const match = res.req.headers.authorization?.match(/^Bearer\s+(.+)$/i);
-    if (!match) return res.status(401).json({ error: "Authentication required" });
+    if (!match?.[1]) return res.status(401).json({ error: "Authentication required" });
     jwks ??= createRemoteJWKSet(settings.jwksUrl);
     const { payload } = await jwtVerify(match[1], jwks, {
       issuer: settings.oidcIssuer,

@@ -1,5 +1,5 @@
-# Shared Triangle API client for a portal with an existing OIDC login.
-# Supply accessToken from the portal's session SDK; never store the inference-service secret here.
+// Shared Triangle API client for a portal with an existing login.
+// Prefer the typed SDK in sdk/src. Supply accessToken from the portal's session SDK; never store the inference-service secret here.
 export type TriangleMessage = { role: "system" | "user" | "assistant"; content: string };
 export type TriangleCompletion = {
   id: string;

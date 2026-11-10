@@ -1,7 +1,7 @@
-# Place only in the existing Cloudflare Pages project's Functions source. Preserve that project's current static build output.
-# Cloudflare Pages/Workers handles routing/auth middleware; this does not host model inference.
+# Merge into the Pages project that already serves llm.triangleos.com; keep its build output.
+# This gateway does auth and routing only. It does not run the model.
 compatibility_date = "2026-11-08"
 compatibility_flags = ["nodejs_compat"]
 
-# Configure variables and secrets in the Pages project dashboard or `wrangler pages secret put`.
-# Do not put secret values in this file or commit them.
+# Set variables and secrets in the Pages dashboard (see .dev.vars.example).
+# Never put TRIANGLE_INFERENCE_TOKEN or SUPABASE_JWT_SECRET in this file.
