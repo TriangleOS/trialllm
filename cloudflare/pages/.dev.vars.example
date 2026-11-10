@@ -11,8 +11,10 @@ TRIANGLE_ALLOWED_ORIGINS=https://llm.triangleos.com,https://app.triangleos.com,h
 # Tunnel hostname that points at the VPS inference container
 TRIANGLE_MODEL_ORIGIN=https://inference-uk-1.triangleos.com
 TRIANGLE_PUBLIC_MODEL_ID=triangle-from-scratch-research-v1
+SUPABASE_URL=https://kvpnvqmgxbqxfwqdrrmm.supabase.co
 
 # Secrets (Encrypt / `wrangler pages secret put`), never commit:
 # TRIANGLE_INFERENCE_TOKEN=
+# SUPABASE_SERVICE_ROLE_KEY=      (account deletion only; with SUPABASE_URL below)
 # TRIANGLE_ACCESS_CLIENT_ID=      (optional, Cloudflare Access service token)
 # TRIANGLE_ACCESS_CLIENT_SECRET=  (optional)

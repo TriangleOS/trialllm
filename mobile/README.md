@@ -17,4 +17,11 @@ Supabase project, the region the server assigned to the account, and chat throug
 
 Checked here with `npx tsc --noEmit` and `npx expo export --platform android` (the bundle builds). It has not been run on a device yet.
 
-Publishing to the stores costs money (Apple USD 99 a year, Google Play USD 25 once), so it is not set up.
+## Store release
+
+- Sign in with Apple is shown on iOS (Apple requires it next to Google sign-in). Enable the Apple provider in Supabase once the Apple Developer account exists.
+- In-app account deletion calls `POST /v1/account/delete` (needs the Pages secrets `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`). Accounts are shared by all TriangleOS apps and the app says so before deleting.
+- `eas.json`: `preview` builds an installable Android APK; `production` builds store bundles and submits Android to the internal testing track as a draft.
+- Listing text, data declarations and review notes: `store/listing.md`. Icons in `assets/` are simple placeholders; replace them with the TriangleOS logo.
+
+Publishing costs money (Apple USD 99 a year, Google Play USD 25 once), so nothing is enrolled or submitted.

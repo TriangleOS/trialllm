@@ -1,7 +1,7 @@
 import type { ModelInfo, RegionResponse } from "@triangleos/llm-sdk";
 import { TriangleApiError } from "@triangleos/llm-sdk";
 import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { triangle } from "../api/triangle";
 import { useAuth } from "../auth/AuthProvider";
 import { colors } from "../theme";
@@ -32,6 +32,28 @@ export default function RegionScreen({ onContinue }: { onContinue: () => void })
 
   useEffect(() => { void load(); }, [load]);
 
+  function confirmDelete() {
+    Alert.alert(
+      "Delete your TriangleOS account?",
+      "This permanently deletes your TriangleOS sign-in. It is shared by all TriangleOS apps, so you will be signed out of them too. This cannot be undone.",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete account",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await triangle.deleteAccount();
+              await signOut();
+            } catch (e) {
+              setError(e instanceof Error ? e.message : "Your account could not be deleted.");
+            }
+          },
+        },
+      ],
+    );
+  }
+
   return (
     <View style={styles.root}>
       <Text style={styles.title}>Your Triangle region</Text>
@@ -58,6 +80,9 @@ export default function RegionScreen({ onContinue }: { onContinue: () => void })
         )}
         <Pressable style={[styles.button, styles.secondary]} onPress={signOut}><Text style={styles.buttonText}>Sign out</Text></Pressable>
       </View>
+      <Pressable onPress={confirmDelete} accessibilityRole="button" style={{ marginTop: 32 }}>
+        <Text style={styles.danger}>Delete my account</Text>
+      </Pressable>
     </View>
   );
 }
@@ -74,4 +99,5 @@ const styles = StyleSheet.create({
   button: { backgroundColor: colors.accent, paddingVertical: 12, paddingHorizontal: 18, borderRadius: 8 },
   secondary: { backgroundColor: colors.panel },
   buttonText: { color: "#fff", fontWeight: "600" },
+  danger: { color: colors.error, textDecorationLine: "underline" },
 });

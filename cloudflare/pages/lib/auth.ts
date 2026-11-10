@@ -44,6 +44,7 @@ export async function verifyAccessToken(
   authorization: string | null,
   env: GatewayEnv,
   override?: KeySource,
+  options: { requireRegion?: boolean } = {},
 ): Promise<AuthResult> {
   if (!env.OIDC_ISSUER || !env.OIDC_AUDIENCE || !env.TRIANGLE_REGION_ID) {
     return { ok: false, status: 503, error: "Regional API is not configured" };
@@ -70,7 +71,7 @@ export async function verifyAccessToken(
   if (typeof payload.sub !== "string" || !payload.sub) {
     return { ok: false, status: 401, error: "Invalid or expired access token" };
   }
-  if (regionClaim(payload) !== env.TRIANGLE_REGION_ID) {
+  if (options.requireRegion !== false && regionClaim(payload) !== env.TRIANGLE_REGION_ID) {
     return { ok: false, status: 403, error: "This account has no access to this regional service" };
   }
   return { ok: true, sub: payload.sub, regionId: env.TRIANGLE_REGION_ID };

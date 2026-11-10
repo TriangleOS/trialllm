@@ -6,8 +6,34 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
-    "ios": { "supportsTablet": false, "bundleIdentifier": "com.triangleos.llm" },
-    "android": { "package": "com.triangleos.llm" },
-    "plugins": ["expo-secure-store", "expo-web-browser"]
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.triangleos.llm",
+      "buildNumber": "1",
+      "usesAppleSignIn": true,
+      "config": {
+        "usesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.triangleos.llm",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0b1f2a"
+      },
+      "permissions": []
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-apple-authentication"
+    ],
+    "icon": "./assets/icon.png",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0b1f2a"
+    }
   }
 }

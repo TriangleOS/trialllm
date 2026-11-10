@@ -66,3 +66,15 @@ describe("streaming", () => {
     await expect(gen.next()).rejects.toMatchObject({ status: 501 });
   });
 });
+
+describe("deleteAccount", () => {
+  it("POSTs to the delete route with the user's token and no user id in the body", async () => {
+    const fetchImpl = vi.fn(async () => json({ deleted: true }));
+    const client = createTriangleClient({ baseUrl: "https://api.test", getToken: async () => "tok", fetchImpl });
+    await client.deleteAccount();
+    const [url, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe("https://api.test/v1/account/delete");
+    expect(init.method).toBe("POST");
+    expect(init.body).toBe("{}");
+  });
+});

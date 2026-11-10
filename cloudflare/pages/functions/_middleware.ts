@@ -16,7 +16,9 @@ export const onRequest: PagesFunction<GatewayEnv, string, GatewayData> = async (
   }
   if (request.method === "OPTIONS") return new Response(null, { status: 204, headers });
 
-  const auth = await verifyAccessToken(request.headers.get("Authorization"), env);
+  // Deleting your own account must work even if no region has been assigned to it.
+  const requireRegion = url.pathname !== "/v1/account/delete";
+  const auth = await verifyAccessToken(request.headers.get("Authorization"), env, undefined, { requireRegion });
   if (!auth.ok) return Response.json({ error: auth.error }, { status: auth.status, headers });
 
   data.triangleUserId = auth.sub;

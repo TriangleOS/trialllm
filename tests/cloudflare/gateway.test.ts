@@ -5,6 +5,7 @@ import { validateChatBody } from "../../cloudflare/pages/lib/validate";
 import { onRequestGet as region } from "../../cloudflare/pages/functions/v1/region";
 import { onRequestGet as models } from "../../cloudflare/pages/functions/v1/models";
 import { onRequestPost as chat } from "../../cloudflare/pages/functions/v1/chat/completions";
+import { onRequestPost as del } from "../../cloudflare/pages/functions/v1/account/delete";
 import { hsToken, ISSUER, runPages, testEnv } from "./helpers";
 
 const URL_BASE = "https://llm.triangleos.com";
@@ -214,5 +215,42 @@ describe("models", () => {
     expect(json.data[0]?.id).toBe("triangle-from-scratch-research-v1");
     expect(json.data[0]?.tier).toBe("research-preview");
     expect(json.data[0]?.notice).toMatch(/Research prototype/);
+  });
+});
+
+describe("account deletion", () => {
+  const env = testEnv({ SUPABASE_URL: "https://example-ref.supabase.co", SUPABASE_SERVICE_ROLE_KEY: "service-role" });
+
+  it("deletes only the token's own user, even without a region", async () => {
+    const fetchMock = vi.fn(async () => new Response(null, { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const token = await hsToken({}, { sub: "user-9" });
+    const res = await runPages(req("/v1/account/delete", { method: "POST", token, body: JSON.stringify({ sub: "someone-else" }) }), env, del);
+    expect(res.status).toBe(200);
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [URL, RequestInit];
+    expect(String(url)).toBe("https://example-ref.supabase.co/auth/v1/admin/users/user-9");
+    expect(init.method).toBe("DELETE");
+  });
+
+  it("requires a valid token", async () => {
+    expect((await runPages(req("/v1/account/delete", { method: "POST" }), env, del)).status).toBe(401);
+  });
+
+  it("still applies the region check to other routes for unassigned users", async () => {
+    const token = await hsToken({});
+    expect((await runPages(req("/v1/region", { token }), env, region)).status).toBe(403);
+  });
+
+  it("returns a safe error when Supabase refuses", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("fk violation detail", { status: 500 })));
+    const token = await hsToken(regionClaim);
+    const res = await runPages(req("/v1/account/delete", { method: "POST", token }), env, del);
+    expect(res.status).toBe(502);
+    expect(await res.text()).not.toContain("fk violation");
+  });
+
+  it("returns 503 when not configured", async () => {
+    const token = await hsToken(regionClaim);
+    expect((await runPages(req("/v1/account/delete", { method: "POST", token }), testEnv(), del)).status).toBe(503);
   });
 });

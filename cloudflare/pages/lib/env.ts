@@ -15,6 +15,10 @@ export interface GatewayEnv {
   /** Secret shared with the private inference service (32+ characters). */
   TRIANGLE_INFERENCE_TOKEN?: string;
   TRIANGLE_PUBLIC_MODEL_ID?: string;
+  /** For account deletion only: https://<project-ref>.supabase.co */
+  SUPABASE_URL?: string;
+  /** Secret. For account deletion only (Apple and Google require in-app deletion). */
+  SUPABASE_SERVICE_ROLE_KEY?: string;
   /** Optional Cloudflare Access service token in front of the tunnel hostname (free). */
   TRIANGLE_ACCESS_CLIENT_ID?: string;
   TRIANGLE_ACCESS_CLIENT_SECRET?: string;

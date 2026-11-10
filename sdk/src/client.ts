@@ -57,6 +57,8 @@ export function createTriangleClient(opts: TriangleClientOptions) {
     fetch: doFetch,
     getRegion: (signal?: AbortSignal) => call<RegionResponse>("/v1/region", { signal }),
     listModels: (signal?: AbortSignal) => call<ModelListResponse>("/v1/models", { signal }),
+    /** Permanently deletes the signed-in user's TriangleOS account (shared by all TriangleOS apps). */
+    deleteAccount: () => call<{ deleted: true }>("/v1/account/delete", { method: "POST", body: "{}" }),
     chat: (req: ChatRequest, signal?: AbortSignal) =>
       call<ChatResponse>("/v1/chat/completions", {
         method: "POST",
