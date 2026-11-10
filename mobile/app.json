@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "Triangle LLM",
+    "slug": "triangle-llm",
+    "scheme": "trianglellm",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": { "supportsTablet": false, "bundleIdentifier": "com.triangleos.llm" },
+    "android": { "package": "com.triangleos.llm" },
+    "plugins": ["expo-secure-store", "expo-web-browser"]
+  }
+}

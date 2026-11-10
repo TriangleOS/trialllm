@@ -1,11 +1,18 @@
-# Non-secret Cloudflare Pages variables (set in the Pages project dashboard)
-OIDC_ISSUER=https://identity.example.africa/
-OIDC_AUDIENCE=trianglellm-api
-OIDC_JWKS_URL=https://identity.example.africa/.well-known/jwks.json
-TRIANGLE_REGION_ID=example-region
-TRIANGLE_ALLOWED_ORIGINS=https://trianglellm.lovable.app,https://portal.example.africa
-TRIANGLE_MODEL_ORIGIN=https://private-inference-origin.example.africa
+# Pages project variables (Settings > Variables and Secrets). Values here are examples.
+# Using the shared Supabase sign-in (project kvpnvqmgxbqxfwqdrrmm):
+OIDC_ISSUER=https://kvpnvqmgxbqxfwqdrrmm.supabase.co/auth/v1
+OIDC_AUDIENCE=authenticated
+# If the Supabase project uses asymmetric JWT signing keys (Settings > JWT Keys), set:
+OIDC_JWKS_URL=https://kvpnvqmgxbqxfwqdrrmm.supabase.co/auth/v1/.well-known/jwks.json
+# Otherwise leave OIDC_JWKS_URL unset and add the legacy JWT secret as a SECRET (not a variable):
+# SUPABASE_JWT_SECRET=...
+TRIANGLE_REGION_ID=uk-1
+TRIANGLE_ALLOWED_ORIGINS=https://llm.triangleos.com,https://app.triangleos.com,https://chat.triangleos.com
+# Tunnel hostname that points at the VPS inference container
+TRIANGLE_MODEL_ORIGIN=https://inference-uk-1.triangleos.com
 TRIANGLE_PUBLIC_MODEL_ID=triangle-from-scratch-research-v1
 
-# Secret: set using Cloudflare Pages secret settings, never commit this.
-# TRIANGLE_INFERENCE_TOKEN=generate-a-long-random-secret
+# Secrets (Encrypt / `wrangler pages secret put`), never commit:
+# TRIANGLE_INFERENCE_TOKEN=
+# TRIANGLE_ACCESS_CLIENT_ID=      (optional, Cloudflare Access service token)
+# TRIANGLE_ACCESS_CLIENT_SECRET=  (optional)

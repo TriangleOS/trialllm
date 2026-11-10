@@ -19,6 +19,7 @@ REGION_ID = os.environ["TRIANGLE_REGION_ID"]
 SERVICE_TOKEN = os.environ["TRIANGLE_INFERENCE_TOKEN"]
 if len(SERVICE_TOKEN) < 32:
     raise RuntimeError("TRIANGLE_INFERENCE_TOKEN must be at least 32 characters")
+MODEL_ID = os.environ.get("TRIANGLE_PUBLIC_MODEL_ID", "triangle-from-scratch-research-v1")
 DEVICE = torch.device(os.environ.get("TRIANGLE_MODEL_DEVICE", "cuda" if torch.cuda.is_available() else "cpu"))
 
 # weights_only avoids arbitrary object unpickling; checkpoint must still be access-controlled.
@@ -40,7 +41,8 @@ class Message(BaseModel):
 class ChatRequest(BaseModel):
     messages: list[Message] = Field(min_length=1, max_length=40)
     stream: bool = False
-    temperature: float = Field(default=0.8, ge=0.1, le=1.5)
+    # Gateway allows 0-2; values outside the sampler's useful range are clamped, not rejected.
+    temperature: float = Field(default=0.8, ge=0.0, le=2.0)
     max_tokens: int = Field(default=128, ge=1, le=512)
     model: str | None = None
 
@@ -58,13 +60,26 @@ def build_prompt(messages: list[Message]) -> str:
     return "\n".join(f"{m.role}: {m.content}" for m in messages) + "\nassistant:"
 
 
-def generate_text(prompt: str, max_tokens: int, temperature: float) -> str:
-    token_ids = torch.tensor([[1, *[b + 3 for b in prompt.encode("utf-8")]]], dtype=torch.long, device=DEVICE)
+STOP_SEQUENCES = ("\nuser:", "\nsystem:", "\nassistant:")
+
+
+def encode(text: str) -> list[int]:
+    # Same byte mapping as train.py (byte + 3). Training never inserts BOS, so neither do we.
+    return [b + 3 for b in text.encode("utf-8")]
+
+
+def generate_text(prompt: str, max_tokens: int, temperature: float) -> tuple[str, int, str]:
+    prompt_ids = encode(prompt)
+    token_ids = torch.tensor([prompt_ids], dtype=torch.long, device=DEVICE)
     with generation_lock, torch.inference_mode():
         generated = model.generate(token_ids, max_new_tokens=max_tokens, temperature=temperature, top_k=40)[0]
     new_ids = generated[token_ids.shape[1]:].tolist()
-    byte_values = [token - 3 for token in new_ids if 3 <= token <= 258]
-    return bytes(byte_values).decode("utf-8", errors="ignore").strip()
+    text = bytes(t - 3 for t in new_ids if 3 <= t <= 258).decode("utf-8", errors="ignore")
+    finish = "length"
+    cut = min((i for i in (text.find(s) for s in STOP_SEQUENCES) if i != -1), default=-1)
+    if cut != -1:
+        text, finish = text[:cut], "stop"
+    return text.strip(), len(prompt_ids), finish
 
 
 @app.get("/healthz")
@@ -75,15 +90,16 @@ def health():
 @app.post("/v1/chat/completions")
 def completion(body: ChatRequest, authorization: str | None = Header(default=None), x_triangle_region: str | None = Header(default=None)):
     authorized(authorization, x_triangle_region)
+    temperature = min(max(body.temperature, 0.1), 1.5)
     if body.stream:
         raise HTTPException(status_code=501, detail="Streaming generation is not implemented")
-    text = generate_text(build_prompt(body.messages), body.max_tokens, body.temperature)
+    text, prompt_tokens, finish = generate_text(build_prompt(body.messages), body.max_tokens, temperature)
     return JSONResponse({
         "id": f"triangle-{uuid.uuid4()}",
         "object": "chat.completion",
         "created": int(time.time()),
-        "model": "triangle-from-scratch-research-v1",
-        "choices": [{"index": 0, "message": {"role": "assistant", "content": text}, "finish_reason": "length"}],
-        "usage": {"prompt_tokens": 0, "completion_tokens": len(text), "total_tokens": len(text)},
+        "model": MODEL_ID,
+        "choices": [{"index": 0, "message": {"role": "assistant", "content": text}, "finish_reason": finish}],
+        "usage": {"prompt_tokens": prompt_tokens, "completion_tokens": body.max_tokens, "total_tokens": prompt_tokens + body.max_tokens},
         "notice": "Research prototype; output may be incoherent or unsafe.",
     })

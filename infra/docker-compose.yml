@@ -1,0 +1,42 @@
+# Private model host for the existing IONOS VPS (System 2). No inbound ports are opened:
+# cloudflared makes an outbound-only tunnel to Cloudflare, so the firewall stays as it is.
+# Start:  docker compose --env-file /opt/system2/trialllm/.env -f infra/docker-compose.yml up -d --build
+# Stop:   docker compose -f infra/docker-compose.yml down
+services:
+  inference:
+    build:
+      context: ../model
+      dockerfile: Dockerfile.inference
+    restart: unless-stopped
+    environment:
+      TRIANGLE_MODEL_CHECKPOINT: /models/triangle-checkpoint.pt
+      TRIANGLE_REGION_ID: ${TRIANGLE_REGION_ID:?set TRIANGLE_REGION_ID}
+      TRIANGLE_INFERENCE_TOKEN: ${TRIANGLE_INFERENCE_TOKEN:?set TRIANGLE_INFERENCE_TOKEN}
+      TRIANGLE_PUBLIC_MODEL_ID: ${TRIANGLE_PUBLIC_MODEL_ID:-triangle-from-scratch-research-v1}
+      TRIANGLE_MODEL_DEVICE: cpu
+    volumes:
+      - ${TRIANGLE_MODEL_DIR:-/opt/system2/trialllm/models}:/models:ro
+    networks: [model-private]
+    # Small VPS: keep the model from starving n8n and OpenClaw.
+    mem_limit: 2g
+    cpus: 2
+    read_only: true
+    tmpfs: [/tmp]
+    security_opt: ["no-new-privileges:true"]
+
+  tunnel:
+    image: cloudflare/cloudflared:2025.8.1
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:?set CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on: [inference]
+    networks: [model-private, egress]
+    security_opt: ["no-new-privileges:true"]
+
+networks:
+  # Internal: the model container has no Internet access at all.
+  model-private:
+    internal: true
+  # Only the tunnel container can reach out (to Cloudflare).
+  egress: {}

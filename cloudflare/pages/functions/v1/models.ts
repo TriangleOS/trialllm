@@ -1,14 +1,24 @@
-interface Env { TRIANGLE_REGION_ID: string; TRIANGLE_PUBLIC_MODEL_ID?: string }
-interface Data { triangleRegionId?: string; triangleUserId?: string }
+import { DEFAULT_MODEL_ID, type GatewayData, type GatewayEnv } from "../../lib/env";
 
-/** OpenAI-compatible model discovery; exposes only the configured public model alias. */
-export const onRequestGet: PagesFunction<Env, string, Data> = async ({ env, data }) => {
+export const MODEL_NOTICE = "Research prototype. Not trained for production use; not evaluated for accuracy, safety or language coverage.";
+
+/** OpenAI-style model list, plus an honest status notice. */
+export const onRequestGet: PagesFunction<GatewayEnv, string, GatewayData> = async ({ env, data }) => {
   if (!data.triangleUserId || data.triangleRegionId !== env.TRIANGLE_REGION_ID) {
     return Response.json({ error: "Authentication required" }, { status: 401 });
   }
-  const model = env.TRIANGLE_PUBLIC_MODEL_ID || "triangle-from-scratch-research-v1";
+  const id = env.TRIANGLE_PUBLIC_MODEL_ID || DEFAULT_MODEL_ID;
   return Response.json({
     object: "list",
-    data: [{ id: model, object: "model", created: 0, owned_by: "triangleos", region: env.TRIANGLE_REGION_ID }],
-  }, { headers: { "Cache-Control": "no-store" } });
+    data: [{
+      id,
+      object: "model",
+      created: 0,
+      owned_by: "triangleos",
+      region: env.TRIANGLE_REGION_ID,
+      tier: "research-preview",
+      notice: MODEL_NOTICE,
+      languages: [] as string[],
+    }],
+  });
 };

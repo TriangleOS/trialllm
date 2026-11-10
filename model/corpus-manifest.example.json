@@ -1,0 +1,14 @@
+{
+  "corpus_sha256": "replace with: python -c \"from manifest import sha256_file; from pathlib import Path; print(sha256_file(Path('/secure/corpus.txt')))\"",
+  "owner": "Finsec Associates Limited",
+  "approved_by": "Name of the person who checked the rights",
+  "approved_on": "2026-11-10",
+  "sources": [
+    {
+      "name": "TriangleOS product documentation written by the founder",
+      "rights_basis": "owned",
+      "evidence": "Written in-house; IP assignment on file",
+      "contains_personal_data": false
+    }
+  ]
+}

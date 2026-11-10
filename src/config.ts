@@ -1,8 +1,21 @@
 import { z } from "zod";
 
-let cached: ReturnType<typeof env> | undefined;
+export interface ApiConfig {
+  port: number;
+  trustProxyHops: number;
+  allowedOrigins: Set<string>;
+  oidcIssuer: string;
+  oidcAudience: string;
+  jwksUrl: URL;
+  regionId: string;
+  modelBaseUrl: URL;
+  modelApiKey: string | undefined;
+  modelId: string;
+}
 
-export function env() {
+let cached: ApiConfig | undefined;
+
+export function env(): ApiConfig {
   if (cached) return cached;
   const required = (name: string): string => {
     const value = process.env[name]?.trim();
