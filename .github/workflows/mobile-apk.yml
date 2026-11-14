@@ -27,7 +27,6 @@ jobs:
       EXPO_PUBLIC_TRIANGLE_GGUF_REPO: ${{ vars.TRIANGLE_GGUF_REPO }}
       EXPO_PUBLIC_TRIANGLE_GGUF_FILE: ${{ vars.TRIANGLE_GGUF_FILE }}
       EXPO_PUBLIC_TRIANGLE_GGUF_MB: ${{ vars.TRIANGLE_GGUF_MB }}
-      NODE_ENV: production
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
