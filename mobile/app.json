@@ -27,7 +27,23 @@
     "plugins": [
       "expo-secure-store",
       "expo-web-browser",
-      "expo-apple-authentication"
+      "expo-apple-authentication",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "buildArchs": [
+              "arm64-v8a"
+            ]
+          }
+        }
+      ],
+      [
+        "llama.rn",
+        {
+          "enableEntitlements": false
+        }
+      ]
     ],
     "icon": "./assets/icon.png",
     "splash": {

@@ -17,6 +17,8 @@ Plain wording only: no claims of a trained or proprietary model until the gates 
 
 Triangle LLM is an early research preview of the AI model TriangleOS is building.
 
+- Chat offline on your own phone: download a small open model once and it answers with no internet and no
+  account. Messages stay on the phone. Until Triangle LLM is published this uses Qwen3 by Alibaba, labelled as such.
 - Sign in with your TriangleOS account (Apple or Google).
 - See which TriangleOS region your account is assigned to. Your chats are handled only in that region.
 - Chat with the current Triangle model.
@@ -31,6 +33,7 @@ medical, legal, financial or safety decisions. You can delete your TriangleOS ac
 | Email address | Yes (from sign-in) | Account | Yes | No |
 | User ID | Yes | Account, region access | Yes | No |
 | Chat messages | Sent to TriangleOS's model service to answer them; not stored by the gateway | App functionality | Yes, while processing | No |
+| On-device chat messages | No: processed only on the phone | | | |
 | Location, contacts, photos, device ID, ads ID | No | | | |
 
 - No tracking and no ads (Apple "Data Not Used to Track You").
