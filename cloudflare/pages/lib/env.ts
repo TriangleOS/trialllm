@@ -15,6 +15,8 @@ export interface GatewayEnv {
   /** Secret shared with the private inference service (32+ characters). */
   TRIANGLE_INFERENCE_TOKEN?: string;
   TRIANGLE_PUBLIC_MODEL_ID?: string;
+  /** "off" leaves the TriangleOS facts sheet out of the system prompt (for models too small to read it). */
+  TRIANGLE_FACTS?: string;
   /** For account deletion only: https://<project-ref>.supabase.co */
   SUPABASE_URL?: string;
   /** Secret. For account deletion only (Apple and Google require in-app deletion). */

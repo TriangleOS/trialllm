@@ -35,6 +35,16 @@ Bearer token and region authorization required. Example request:
 
 Client-supplied `model`, region, URL, service token, or provider keys are not accepted as routing controls. The Pages Function uses fixed deployment configuration and a server-side inference secret. The current research model returns non-streaming OpenAI-compatible response. Streaming is explicitly not supported yet; clients should handle HTTP 501.
 
+### What the gateway adds to every chat
+
+Callers send only `user` and `assistant` turns, ending with a `user` turn; a `system` message is rejected with 400.
+The gateway builds the system prompt itself (assistant line, the TriangleOS facts sheet and a security rule), removes
+chat control tokens such as `<|im_start|>` from user text, and puts a short note in front of any user message that
+carries quoted or pasted text, so the model treats instructions hidden in that text as material rather than orders
+(`cloudflare/pages/lib/guard.ts`). The model only writes text; nothing it writes is run or sent anywhere. The guard
+lowers the risk of hidden instructions being followed. It does not remove it, so do not connect model output to
+actions (email, payments, account changes) without a person or a separate check in between.
+
 ## Client packages
 
 - `integrations/lovable/triangleApi.ts` — existing Lovable website; adapt `getAccessToken` to its actual login SDK and preserve current UI.
