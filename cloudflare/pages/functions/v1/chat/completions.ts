@@ -1,4 +1,5 @@
 import { DEFAULT_MODEL_ID, type GatewayData, type GatewayEnv } from "../../../lib/env";
+import { guardMessages } from "../../../lib/guard";
 import { LIMITS, validateChatBody } from "../../../lib/validate";
 
 export const UPSTREAM_TIMEOUT_MS = 120_000;
@@ -49,8 +50,9 @@ export const onRequestPost: PagesFunction<GatewayEnv, string, GatewayData> = asy
           ? { "CF-Access-Client-Id": env.TRIANGLE_ACCESS_CLIENT_ID, "CF-Access-Client-Secret": env.TRIANGLE_ACCESS_CLIENT_SECRET }
           : {}),
       },
-      // Only validated fields are forwarded; model and region come from deployment config.
-      body: JSON.stringify({ ...result.body, model: env.TRIANGLE_PUBLIC_MODEL_ID || DEFAULT_MODEL_ID, stream: false }),
+      // Only validated fields are forwarded; model and region come from deployment config, and the
+      // system prompt, facts sheet and hidden-instruction guard come from the gateway (lib/guard.ts).
+      body: JSON.stringify({ ...result.body, messages: guardMessages(result.body.messages, env.TRIANGLE_FACTS !== "off"), model: env.TRIANGLE_PUBLIC_MODEL_ID || DEFAULT_MODEL_ID, stream: false }),
       signal: aborter.signal,
       redirect: "error",
     });

@@ -1,4 +1,5 @@
 export type ChatRole = "system" | "user" | "assistant";
+/** Roles a caller may send. The system prompt is set by the gateway (lib/guard.ts). */
 export interface ChatMessage { role: ChatRole; content: string }
 export interface ChatBody {
   messages: ChatMessage[];
@@ -9,7 +10,7 @@ export interface ChatBody {
 
 const BODY_KEYS = new Set(["messages", "stream", "temperature", "max_tokens"]);
 const MESSAGE_KEYS = new Set(["role", "content"]);
-const ROLES = new Set<string>(["system", "user", "assistant"]);
+const ROLES = new Set<string>(["user", "assistant"]);
 export const LIMITS = { messages: 40, contentChars: 20_000, totalChars: 60_000, maxTokens: 512, bodyBytes: 64 * 1024 };
 
 /**
@@ -37,6 +38,7 @@ export function validateChatBody(value: unknown): { ok: true; body: ChatBody } |
     if (!item || typeof item !== "object" || Array.isArray(item)) return { ok: false, error: "Invalid message" };
     const m = item as Record<string, unknown>;
     if (Object.keys(m).some((k) => !MESSAGE_KEYS.has(k))) return { ok: false, error: "Messages may only contain role and content" };
+    if (m.role === "system") return { ok: false, error: "System messages are set by the service and cannot be sent" };
     if (typeof m.role !== "string" || !ROLES.has(m.role)) return { ok: false, error: "Invalid message role" };
     if (typeof m.content !== "string" || m.content.length < 1 || m.content.length > LIMITS.contentChars) {
       return { ok: false, error: `Message content must be 1-${LIMITS.contentChars} characters` };
@@ -45,6 +47,7 @@ export function validateChatBody(value: unknown): { ok: true; body: ChatBody } |
     messages.push({ role: m.role as ChatRole, content: m.content });
   }
   if (total > LIMITS.totalChars) return { ok: false, error: "Conversation is too long" };
+  if (messages[messages.length - 1].role !== "user") return { ok: false, error: "The last message must be from the user" };
   const body: ChatBody = { messages };
   if (raw.stream !== undefined) body.stream = raw.stream as boolean;
   if (raw.temperature !== undefined) body.temperature = raw.temperature as number;
